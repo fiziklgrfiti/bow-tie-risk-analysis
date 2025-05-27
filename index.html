@@ -859,11 +859,114 @@
             document.getElementById('currentRiskLevel').textContent = currentAssessment.currentRisk.level;
             document.getElementById('currentRiskScore').className = `risk-score ${getRiskClass(riskScore)}`;
 
-            // Update comparison table
-            document.getElementById('beforeLikelihood').textContent = likelihood;
-            document.getElementById('beforeImpact').textContent = impact;
-            document.getElementById('beforeScore').textContent = riskScore;
-            document.getElementById('beforeLevel').textContent = currentAssessment.currentRisk.level;
+            // Update the new risk table
+            updateRiskTable();
+        }
+
+        function updateRiskTable() {
+            // Update risk description
+            const findingTitle = document.getElementById('findingTitle').value || 'Security Finding';
+            const findingDescription = document.getElementById('findingDescription').value || 'Security risk assessment';
+            const assetName = document.getElementById('assetName').value || 'Asset';
+            
+            document.getElementById('riskDescription').innerHTML = `
+                <strong>Risk of ${findingTitle.toLowerCase()}</strong><br>
+                <span style="font-size: 0.9em; color: #666;">${findingDescription.substring(0, 100)}${findingDescription.length > 100 ? '...' : ''}</span><br>
+                <small style="color: #999;">Asset: ${assetName}</small>
+            `;
+
+            // Update inherent evaluation
+            if (currentAssessment.currentRisk && currentAssessment.currentRisk.likelihood) {
+                const likelihoodText = getLikelihoodText(currentAssessment.currentRisk.likelihood);
+                const impactText = getImpactText(currentAssessment.currentRisk.impact);
+                const riskLevel = currentAssessment.currentRisk.level;
+                const riskColor = getRiskTableColor(currentAssessment.currentRisk.score);
+
+                document.getElementById('inherentEvaluation').innerHTML = `
+                    <div style="background: ${riskColor}; padding: 15px; border-radius: 8px; color: white; font-weight: bold;">
+                        ${likelihoodText}<br>x ${impactText}<br>= ${riskLevel}
+                    </div>
+                `;
+            }
+
+            // Update control measures
+            updateControlMeasuresDisplay();
+
+            // Update residual evaluation if calculated
+            if (currentAssessment.adjustedRisk && currentAssessment.adjustedRisk.likelihood) {
+                const likelihoodText = getLikelihoodText(currentAssessment.adjustedRisk.likelihood);
+                const impactText = getImpactText(currentAssessment.adjustedRisk.impact);
+                const riskLevel = currentAssessment.adjustedRisk.level;
+                const riskColor = getRiskTableColor(currentAssessment.adjustedRisk.score);
+
+                document.getElementById('residualEvaluation').innerHTML = `
+                    <div style="background: ${riskColor}; padding: 15px; border-radius: 8px; color: white; font-weight: bold;">
+                        ${likelihoodText}<br>x ${impactText}<br>= ${riskLevel}
+                    </div>
+                `;
+            } else {
+                document.getElementById('residualEvaluation').innerHTML = `
+                    <div style="background: #95a5a6; padding: 15px; border-radius: 8px; color: white; font-weight: bold;">
+                        Not calculated
+                    </div>
+                `;
+            }
+        }
+
+        function getLikelihoodText(likelihood) {
+            const likelihoodMap = {
+                5: 'Almost Certain',
+                4: 'Likely', 
+                3: 'Possible',
+                2: 'Unlikely',
+                1: 'Rare'
+            };
+            return likelihoodMap[likelihood] || 'Unknown';
+        }
+
+        function getImpactText(impact) {
+            const impactMap = {
+                5: 'Extreme',
+                4: 'Major',
+                3: 'Moderate', 
+                2: 'Minor',
+                1: 'Insignificant'
+            };
+            return impactMap[impact] || 'Unknown';
+        }
+
+        function getRiskTableColor(score) {
+            if (score >= 20) return '#c0392b';  // Very High - Dark Red
+            if (score >= 15) return '#e74c3c';  // High - Red
+            if (score >= 10) return '#f39c12';  // Medium - Orange
+            if (score >= 5) return '#f1c40f';   // Low - Yellow
+            return '#27ae60';                    // Very Low - Green
+        }
+
+        function updateControlMeasuresDisplay() {
+            const selectedCheckboxes = document.querySelectorAll('.control-item input[type="checkbox"]:checked');
+            const controlsList = document.getElementById('controlsList');
+            
+            if (selectedCheckboxes.length === 0) {
+                controlsList.innerHTML = '<em style="color: #666;">No compensating controls applied yet</em>';
+                return;
+            }
+
+            const controls = [];
+            selectedCheckboxes.forEach(checkbox => {
+                const controlId = checkbox.id;
+                const control = [...defaultControls.preventative, ...defaultControls.mitigative]
+                    .find(c => c.id === controlId);
+                if (control) {
+                    controls.push(`<strong>${control.id}:</strong> ${control.name}`);
+                }
+            });
+
+            controlsList.innerHTML = `
+                <ul style="margin: 0; padding-left: 20px;">
+                    ${controls.map(control => `<li style="margin-bottom: 8px;">${control}</li>`).join('')}
+                </ul>
+            `;
         }
 
         function getRiskLevel(score) {
