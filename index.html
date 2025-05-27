@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -479,6 +480,224 @@
             transition: opacity 0.3s ease;
             max-width: 250px;
         }
+
+        /* Visual Risk Matrix Styles */
+        .risk-matrix-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .visual-risk-matrix {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 auto;
+            font-size: 14px;
+            background: white;
+        }
+
+        .visual-risk-matrix th, .visual-risk-matrix td {
+            border: 2px solid #34495e;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            position: relative;
+            min-height: 50px;
+        }
+
+        .matrix-corner {
+            background: #34495e;
+            color: white;
+            font-size: 12px;
+            width: 120px;
+        }
+
+        .matrix-header {
+            background: #34495e;
+            color: white;
+            font-size: 13px;
+            padding: 8px 4px;
+        }
+
+        .consequence-header {
+            background: #34495e;
+            color: white;
+            font-size: 11px;
+            padding: 8px 4px;
+            min-width: 80px;
+        }
+
+        .likelihood-header {
+            background: #34495e;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            writing-mode: horizontal-tb;
+            width: 120px;
+        }
+
+        .matrix-cell {
+            position: relative;
+            height: 60px;
+            width: 80px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: default;
+            transition: all 0.3s ease;
+        }
+
+        .matrix-cell.low {
+            background: #27ae60;
+            color: white;
+        }
+
+        .matrix-cell.medium {
+            background: #f1c40f;
+            color: #2c3e50;
+        }
+
+        .matrix-cell.high {
+            background: #e67e22;
+            color: white;
+        }
+
+        .matrix-cell.extreme {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* Risk position markers */
+        .risk-position {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid white;
+            z-index: 10;
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .risk-position.before {
+            background: #2c3e50;
+            color: white;
+            top: 8px;
+            left: 8px;
+        }
+
+        .risk-position.after {
+            background: #8e44ad;
+            color: white;
+            top: 8px;
+            right: 8px;
+        }
+
+        .risk-arrow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: #2c3e50;
+            font-weight: bold;
+            z-index: 5;
+            text-shadow: 1px 1px 2px white;
+        }
+
+        .matrix-legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e6ed;
+        }
+
+        .matrix-legend h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .legend-items {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .legend-marker {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .before-marker {
+            color: #2c3e50;
+        }
+
+        .after-marker {
+            color: #8e44ad;
+        }
+
+        .arrow-marker {
+            color: #2c3e50;
+        }
+
+        /* Matrix cell highlighting */
+        .matrix-cell.current-before {
+            box-shadow: inset 0 0 0 4px #2c3e50;
+        }
+
+        .matrix-cell.current-after {
+            box-shadow: inset 0 0 0 4px #8e44ad;
+        }
+
+        .matrix-cell.has-movement {
+            animation: riskMovement 2s ease-in-out;
+        }
+
+        @keyframes riskMovement {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @media (max-width: 768px) {
+            .visual-risk-matrix {
+                font-size: 10px;
+            }
+            
+            .matrix-cell {
+                height: 50px;
+                width: 60px;
+                font-size: 10px;
+            }
+            
+            .risk-position {
+                width: 16px;
+                height: 16px;
+                font-size: 12px;
+            }
+            
+            .legend-items {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -748,6 +967,89 @@
                     </tbody>
                 </table>
 
+                <!-- Visual Risk Matrix -->
+                <div style="margin: 30px 0; text-align: center;">
+                    <h3 style="margin-bottom: 20px; color: #2c3e50;">📊 Visual Risk Matrix</h3>
+                    <div class="risk-matrix-container">
+                        <table class="visual-risk-matrix">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" class="matrix-corner">Likelihood Rating</th>
+                                    <th colspan="5" class="matrix-header">Consequences - Maximum Reasonable Consequence</th>
+                                </tr>
+                                <tr>
+                                    <th class="consequence-header">Insignificant</th>
+                                    <th class="consequence-header">Minor</th>
+                                    <th class="consequence-header">Moderate</th>
+                                    <th class="consequence-header">Major</th>
+                                    <th class="consequence-header">Catastrophic</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th class="likelihood-header">Almost Certain</th>
+                                    <td class="matrix-cell medium" data-likelihood="5" data-impact="1">Medium</td>
+                                    <td class="matrix-cell medium" data-likelihood="5" data-impact="2">Medium</td>
+                                    <td class="matrix-cell high" data-likelihood="5" data-impact="3">High</td>
+                                    <td class="matrix-cell extreme" data-likelihood="5" data-impact="4">Extreme</td>
+                                    <td class="matrix-cell extreme" data-likelihood="5" data-impact="5">Extreme</td>
+                                </tr>
+                                <tr>
+                                    <th class="likelihood-header">Likely</th>
+                                    <td class="matrix-cell low" data-likelihood="4" data-impact="1">Low</td>
+                                    <td class="matrix-cell medium" data-likelihood="4" data-impact="2">Medium</td>
+                                    <td class="matrix-cell medium" data-likelihood="4" data-impact="3">Medium</td>
+                                    <td class="matrix-cell high" data-likelihood="4" data-impact="4">High</td>
+                                    <td class="matrix-cell extreme" data-likelihood="4" data-impact="5">Extreme</td>
+                                </tr>
+                                <tr>
+                                    <th class="likelihood-header">Possible</th>
+                                    <td class="matrix-cell low" data-likelihood="3" data-impact="1">Low</td>
+                                    <td class="matrix-cell low" data-likelihood="3" data-impact="2">Low</td>
+                                    <td class="matrix-cell medium" data-likelihood="3" data-impact="3">Medium</td>
+                                    <td class="matrix-cell high" data-likelihood="3" data-impact="4">High</td>
+                                    <td class="matrix-cell high" data-likelihood="3" data-impact="5">High</td>
+                                </tr>
+                                <tr>
+                                    <th class="likelihood-header">Unlikely</th>
+                                    <td class="matrix-cell low" data-likelihood="2" data-impact="1">Low</td>
+                                    <td class="matrix-cell low" data-likelihood="2" data-impact="2">Low</td>
+                                    <td class="matrix-cell low" data-likelihood="2" data-impact="3">Low</td>
+                                    <td class="matrix-cell medium" data-likelihood="2" data-impact="4">Medium</td>
+                                    <td class="matrix-cell high" data-likelihood="2" data-impact="5">High</td>
+                                </tr>
+                                <tr>
+                                    <th class="likelihood-header">Rare</th>
+                                    <td class="matrix-cell low" data-likelihood="1" data-impact="1">Low</td>
+                                    <td class="matrix-cell low" data-likelihood="1" data-impact="2">Low</td>
+                                    <td class="matrix-cell low" data-likelihood="1" data-impact="3">Low</td>
+                                    <td class="matrix-cell low" data-likelihood="1" data-impact="4">Low</td>
+                                    <td class="matrix-cell medium" data-likelihood="1" data-impact="5">Medium</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Legend -->
+                        <div class="matrix-legend">
+                            <h4>Risk Matrix Legend</h4>
+                            <div class="legend-items">
+                                <div class="legend-item">
+                                    <span class="legend-marker before-marker">●</span>
+                                    <span>BEFORE Controls</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-marker after-marker">●</span>
+                                    <span>AFTER Controls</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-marker arrow-marker">→</span>
+                                    <span>Risk Movement</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="gap-analysis hidden" id="gapAnalysis">
                     <h3>🔍 Gap Analysis</h3>
                     <div id="gapContent"></div>
@@ -981,6 +1283,82 @@
                 if (beforeImpact) beforeImpact.textContent = currentAssessment.currentRisk.impact;
                 if (beforeScore) beforeScore.textContent = currentAssessment.currentRisk.score;
                 if (beforeLevel) beforeLevel.textContent = currentAssessment.currentRisk.level;
+                
+                // Update visual risk matrix
+                updateVisualRiskMatrix();
+            }
+        }
+
+        function updateVisualRiskMatrix() {
+            // Clear existing markers
+            document.querySelectorAll('.risk-position, .risk-arrow').forEach(el => el.remove());
+            document.querySelectorAll('.matrix-cell').forEach(el => {
+                el.classList.remove('current-before', 'current-after', 'has-movement');
+            });
+
+            // Add BEFORE position if current risk exists
+            if (currentAssessment.currentRisk && currentAssessment.currentRisk.likelihood) {
+                addRiskPosition(
+                    currentAssessment.currentRisk.likelihood, 
+                    currentAssessment.currentRisk.impact, 
+                    'before'
+                );
+            }
+
+            // Add AFTER position if adjusted risk exists
+            if (currentAssessment.adjustedRisk && currentAssessment.adjustedRisk.likelihood) {
+                addRiskPosition(
+                    currentAssessment.adjustedRisk.likelihood, 
+                    currentAssessment.adjustedRisk.impact, 
+                    'after'
+                );
+
+                // Add arrow showing movement if positions are different
+                if (currentAssessment.currentRisk && 
+                    (currentAssessment.currentRisk.likelihood !== currentAssessment.adjustedRisk.likelihood ||
+                     currentAssessment.currentRisk.impact !== currentAssessment.adjustedRisk.impact)) {
+                    addRiskMovementArrow();
+                }
+            }
+        }
+
+        function addRiskPosition(likelihood, impact, type) {
+            // Find the correct cell based on likelihood and impact
+            const cell = document.querySelector(
+                `.matrix-cell[data-likelihood="${likelihood}"][data-impact="${impact}"]`
+            );
+            
+            if (cell) {
+                // Add highlighting to the cell
+                cell.classList.add(`current-${type}`);
+                
+                // Create position marker
+                const marker = document.createElement('div');
+                marker.className = `risk-position ${type}`;
+                marker.textContent = type === 'before' ? 'B' : 'A';
+                marker.title = type === 'before' ? 'BEFORE Controls' : 'AFTER Controls';
+                
+                cell.appendChild(marker);
+            }
+        }
+
+        function addRiskMovementArrow() {
+            // Find cells with both before and after positions
+            const beforeCell = document.querySelector('.matrix-cell.current-before');
+            const afterCell = document.querySelector('.matrix-cell.current-after');
+            
+            if (beforeCell && afterCell && beforeCell !== afterCell) {
+                // Add movement animation
+                beforeCell.classList.add('has-movement');
+                afterCell.classList.add('has-movement');
+                
+                // Add arrow to the "after" cell if different from "before"
+                const arrow = document.createElement('div');
+                arrow.className = 'risk-arrow';
+                arrow.innerHTML = '→';
+                arrow.title = 'Risk moved from BEFORE to AFTER position';
+                
+                afterCell.appendChild(arrow);
             }
         }
 
@@ -1165,6 +1543,9 @@
 
             // Update the detailed risk table
             updateRiskTable();
+
+            // Update the visual risk matrix
+            updateVisualRiskMatrix();
 
             // Perform gap analysis
             performGapAnalysis();
