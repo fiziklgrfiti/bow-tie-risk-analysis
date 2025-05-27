@@ -503,9 +503,20 @@
                 <h2>Step 4: Apply Compensating Controls</h2>
                 
                 <div class="controls-section">
-                    <h3>Available Compensating Controls</h3>
-                    <div class="controls-grid" id="controlsGrid">
-                        <!-- Controls will be dynamically populated -->
+                    <h3>📋 Preventative Controls</h3>
+                    <p style="margin-bottom: 20px; color: #666; font-style: italic;">Controls that help prevent security events from occurring</p>
+                    <div class="controls-grid" id="preventativeControlsGrid">
+                        <!-- Preventative controls will be dynamically populated -->
+                    </div>
+                </div>
+
+                <div class="section-divider" style="margin: 30px 0;"></div>
+
+                <div class="controls-section">
+                    <h3>🚨 Reactive/Mitigative Controls</h3>
+                    <p style="margin-bottom: 20px; color: #666; font-style: italic;">Controls that minimize impact by enabling better detection, response, and recovery</p>
+                    <div class="controls-grid" id="reactiveControlsGrid">
+                        <!-- Reactive controls will be dynamically populated -->
                     </div>
                 </div>
 
@@ -620,19 +631,23 @@
         }
 
         function loadDefaultControls() {
-            const controlsGrid = document.getElementById('controlsGrid');
-            controlsGrid.innerHTML = '';
+            const preventativeGrid = document.getElementById('preventativeControlsGrid');
+            const reactiveGrid = document.getElementById('reactiveControlsGrid');
+            
+            // Clear existing content
+            preventativeGrid.innerHTML = '';
+            reactiveGrid.innerHTML = '';
 
             // Add preventative controls
             defaultControls.preventative.forEach(control => {
                 const controlElement = createControlElement(control, 'preventative');
-                controlsGrid.appendChild(controlElement);
+                preventativeGrid.appendChild(controlElement);
             });
 
-            // Add mitigative controls
+            // Add reactive/mitigative controls
             defaultControls.mitigative.forEach(control => {
                 const controlElement = createControlElement(control, 'mitigative');
-                controlsGrid.appendChild(controlElement);
+                reactiveGrid.appendChild(controlElement);
             });
         }
 
@@ -894,25 +909,42 @@
         }
 
         function updateControlsFromConfig(customControls) {
-            const controlsGrid = document.getElementById('controlsGrid');
-            controlsGrid.innerHTML = '';
+            const preventativeGrid = document.getElementById('preventativeControlsGrid');
+            const reactiveGrid = document.getElementById('reactiveControlsGrid');
+            
+            // Clear existing content
+            preventativeGrid.innerHTML = '';
+            reactiveGrid.innerHTML = '';
 
-            ['preventative', 'mitigative'].forEach(type => {
-                if (customControls[type]) {
-                    customControls[type].forEach(control => {
-                        // Ensure control has required properties
-                        const controlObj = {
-                            id: control.id || `CUSTOM_${Math.random().toString(36).substr(2, 9)}`,
-                            name: control.name || 'Custom Control',
-                            description: control.description || 'Custom control description',
-                            riskReduction: control.riskReduction || { likelihood: 0.3, impact: 0.3 }
-                        };
-                        
-                        const controlElement = createControlElement(controlObj, type);
-                        controlsGrid.appendChild(controlElement);
-                    });
-                }
-            });
+            // Add preventative controls
+            if (customControls.preventative) {
+                customControls.preventative.forEach(control => {
+                    const controlObj = {
+                        id: control.id || `CUSTOM_${Math.random().toString(36).substr(2, 9)}`,
+                        name: control.name || 'Custom Control',
+                        description: control.description || 'Custom control description',
+                        riskReduction: control.riskReduction || { likelihood: 0.3, impact: 0.3 }
+                    };
+                    
+                    const controlElement = createControlElement(controlObj, 'preventative');
+                    preventativeGrid.appendChild(controlElement);
+                });
+            }
+
+            // Add reactive/mitigative controls
+            if (customControls.mitigative) {
+                customControls.mitigative.forEach(control => {
+                    const controlObj = {
+                        id: control.id || `CUSTOM_${Math.random().toString(36).substr(2, 9)}`,
+                        name: control.name || 'Custom Control',
+                        description: control.description || 'Custom control description',
+                        riskReduction: control.riskReduction || { likelihood: 0.3, impact: 0.3 }
+                    };
+                    
+                    const controlElement = createControlElement(controlObj, 'mitigative');
+                    reactiveGrid.appendChild(controlElement);
+                });
+            }
         }
 
         function exportAssessment() {
