@@ -828,7 +828,7 @@
                 <label for="${control.id}">
                     <strong>${control.id}: ${control.name}</strong><br>
                     <small>${control.description}</small><br>
-                    <em>Risk Reduction: L(-${Math.round(control.riskReduction.likelihood * 100)}%) I(-${Math.round(control.riskReduction.impact * 100)}%)</em>
+                    <em>Risk Reduction: Likelihood(-${Math.round(control.riskReduction.likelihood * 100)}%) Impact(-${Math.round(control.riskReduction.impact * 100)}%)</em>
                 </label>
             `;
 
@@ -1749,7 +1749,7 @@ ${data.analysis.notes || 'No additional notes provided.'}
             tooltip.innerHTML = `
                 <strong>${control.id}: ${control.name}</strong><br>
                 ${control.description}<br>
-                <em>Risk Reduction: L(-${Math.round(control.riskReduction.likelihood * 100)}%) I(-${Math.round(control.riskReduction.impact * 100)}%)</em><br>
+                <em>Risk Reduction: Likelihood(-${Math.round(control.riskReduction.likelihood * 100)}%) Impact(-${Math.round(control.riskReduction.impact * 100)}%)</em><br>
                 <em>Effectiveness: ${Math.round(effectiveness * 100)}%</em>
             `;
             
