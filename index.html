@@ -266,6 +266,30 @@
             font-weight: 600;
         }
 
+        .risk-assessment-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .risk-assessment-table th, .risk-assessment-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e6ed;
+            vertical-align: top;
+        }
+
+        .risk-assessment-table th {
+            background: #34495e;
+            color: white;
+            font-weight: 600;
+            width: 20%;
+        }
+
         .gap-analysis {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
@@ -627,6 +651,39 @@
                     <div id="currentRiskLevel">High Risk</div>
                 </div>
 
+                <!-- New Risk Assessment Table -->
+                <table class="risk-assessment-table">
+                    <thead>
+                        <tr>
+                            <th>Risk Description</th>
+                            <th>Inherent Evaluation</th>
+                            <th>Control Measures</th>
+                            <th>Residual Evaluation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="riskDescription">
+                                <strong>Risk Description</strong><br>
+                                <span style="font-size: 0.9em; color: #666;">Loading...</span>
+                            </td>
+                            <td id="inherentEvaluation">
+                                <div style="background: #95a5a6; padding: 15px; border-radius: 8px; color: white; font-weight: bold;">
+                                    Not calculated
+                                </div>
+                            </td>
+                            <td id="controlsList">
+                                <em style="color: #666;">No compensating controls applied yet</em>
+                            </td>
+                            <td id="residualEvaluation">
+                                <div style="background: #95a5a6; padding: 15px; border-radius: 8px; color: white; font-weight: bold;">
+                                    Not calculated
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
                 <button class="btn btn-primary" onclick="calculateCurrentRisk()">Calculate Current Risk</button>
             </div>
 
@@ -791,18 +848,44 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadDefaultControls();
             setupEventListeners();
+            // Initialize with default values
+            calculateCurrentRisk();
         });
 
         function setupEventListeners() {
-            document.getElementById('jsonUpload').addEventListener('change', loadCustomConfiguration);
-            document.getElementById('likelihood').addEventListener('change', calculateCurrentRisk);
-            document.getElementById('impact').addEventListener('change', calculateCurrentRisk);
+            const jsonUpload = document.getElementById('jsonUpload');
+            const likelihood = document.getElementById('likelihood');
+            const impact = document.getElementById('impact');
+            
+            if (jsonUpload) {
+                jsonUpload.addEventListener('change', loadCustomConfiguration);
+            }
+            if (likelihood) {
+                likelihood.addEventListener('change', calculateCurrentRisk);
+            }
+            if (impact) {
+                impact.addEventListener('change', calculateCurrentRisk);
+            }
+
+            // Add change listeners for form fields to update risk table
+            const formFields = ['findingTitle', 'findingDescription', 'assetName'];
+            formFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener('input', updateRiskTable);
+                }
+            });
         }
 
         function loadDefaultControls() {
             const preventativeGrid = document.getElementById('preventativeControlsGrid');
             const reactiveGrid = document.getElementById('reactiveControlsGrid');
             
+            if (!preventativeGrid || !reactiveGrid) {
+                console.error('Control grids not found');
+                return;
+            }
+
             // Clear existing content
             preventativeGrid.innerHTML = '';
             reactiveGrid.innerHTML = '';
@@ -835,17 +918,31 @@
             div.addEventListener('click', function(e) {
                 if (e.target.type !== 'checkbox') {
                     const checkbox = div.querySelector('input[type="checkbox"]');
-                    checkbox.checked = !checkbox.checked;
+                    if (checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                    }
                 }
-                div.classList.toggle('selected', div.querySelector('input[type="checkbox"]').checked);
+                const checkbox = div.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    div.classList.toggle('selected', checkbox.checked);
+                    updateControlMeasuresDisplay();
+                }
             });
 
             return div;
         }
 
         function calculateCurrentRisk() {
-            const likelihood = parseInt(document.getElementById('likelihood').value);
-            const impact = parseInt(document.getElementById('impact').value);
+            const likelihoodEl = document.getElementById('likelihood');
+            const impactEl = document.getElementById('impact');
+            
+            if (!likelihoodEl || !impactEl) {
+                console.error('Risk assessment elements not found');
+                return;
+            }
+
+            const likelihood = parseInt(likelihoodEl.value);
+            const impact = parseInt(impactEl.value);
             const riskScore = likelihood * impact;
             
             currentAssessment.currentRisk = {
@@ -855,34 +952,66 @@
                 level: getRiskLevel(riskScore)
             };
 
-            document.getElementById('currentRiskScore').textContent = `Risk Score: ${riskScore}`;
-            document.getElementById('currentRiskLevel').textContent = currentAssessment.currentRisk.level;
-            document.getElementById('currentRiskScore').className = `risk-score ${getRiskClass(riskScore)}`;
+            const currentRiskScore = document.getElementById('currentRiskScore');
+            const currentRiskLevel = document.getElementById('currentRiskLevel');
+            
+            if (currentRiskScore) {
+                currentRiskScore.textContent = `Risk Score: ${riskScore}`;
+                currentRiskScore.className = `risk-score ${getRiskClass(riskScore)}`;
+            }
+            
+            if (currentRiskLevel) {
+                currentRiskLevel.textContent = currentAssessment.currentRisk.level;
+            }
 
-            // Update the new risk table
+            // Update comparison table
+            updateComparisonTable();
+            // Update the detailed risk table
             updateRiskTable();
         }
 
+        function updateComparisonTable() {
+            const beforeLikelihood = document.getElementById('beforeLikelihood');
+            const beforeImpact = document.getElementById('beforeImpact');
+            const beforeScore = document.getElementById('beforeScore');
+            const beforeLevel = document.getElementById('beforeLevel');
+
+            if (currentAssessment.currentRisk && currentAssessment.currentRisk.likelihood) {
+                if (beforeLikelihood) beforeLikelihood.textContent = currentAssessment.currentRisk.likelihood;
+                if (beforeImpact) beforeImpact.textContent = currentAssessment.currentRisk.impact;
+                if (beforeScore) beforeScore.textContent = currentAssessment.currentRisk.score;
+                if (beforeLevel) beforeLevel.textContent = currentAssessment.currentRisk.level;
+            }
+        }
+
         function updateRiskTable() {
+            // Safely get elements and check if they exist
+            const riskDescription = document.getElementById('riskDescription');
+            const inherentEvaluation = document.getElementById('inherentEvaluation');
+            const controlsList = document.getElementById('controlsList');
+            const residualEvaluation = document.getElementById('residualEvaluation');
+
             // Update risk description
-            const findingTitle = document.getElementById('findingTitle').value || 'Security Finding';
-            const findingDescription = document.getElementById('findingDescription').value || 'Security risk assessment';
-            const assetName = document.getElementById('assetName').value || 'Asset';
+            const findingTitle = document.getElementById('findingTitle')?.value || 'Security Finding';
+            const findingDescription = document.getElementById('findingDescription')?.value || 'Security risk assessment';
+            const assetName = document.getElementById('assetName')?.value || 'Asset';
             
-            document.getElementById('riskDescription').innerHTML = `
-                <strong>Risk of ${findingTitle.toLowerCase()}</strong><br>
-                <span style="font-size: 0.9em; color: #666;">${findingDescription.substring(0, 100)}${findingDescription.length > 100 ? '...' : ''}</span><br>
-                <small style="color: #999;">Asset: ${assetName}</small>
-            `;
+            if (riskDescription) {
+                riskDescription.innerHTML = `
+                    <strong>Risk of ${findingTitle.toLowerCase()}</strong><br>
+                    <span style="font-size: 0.9em; color: #666;">${findingDescription.substring(0, 100)}${findingDescription.length > 100 ? '...' : ''}</span><br>
+                    <small style="color: #999;">Asset: ${assetName}</small>
+                `;
+            }
 
             // Update inherent evaluation
-            if (currentAssessment.currentRisk && currentAssessment.currentRisk.likelihood) {
+            if (inherentEvaluation && currentAssessment.currentRisk && currentAssessment.currentRisk.likelihood) {
                 const likelihoodText = getLikelihoodText(currentAssessment.currentRisk.likelihood);
                 const impactText = getImpactText(currentAssessment.currentRisk.impact);
                 const riskLevel = currentAssessment.currentRisk.level;
                 const riskColor = getRiskTableColor(currentAssessment.currentRisk.score);
 
-                document.getElementById('inherentEvaluation').innerHTML = `
+                inherentEvaluation.innerHTML = `
                     <div style="background: ${riskColor}; padding: 15px; border-radius: 8px; color: white; font-weight: bold;">
                         ${likelihoodText}<br>x ${impactText}<br>= ${riskLevel}
                     </div>
@@ -893,19 +1022,19 @@
             updateControlMeasuresDisplay();
 
             // Update residual evaluation if calculated
-            if (currentAssessment.adjustedRisk && currentAssessment.adjustedRisk.likelihood) {
+            if (residualEvaluation && currentAssessment.adjustedRisk && currentAssessment.adjustedRisk.likelihood) {
                 const likelihoodText = getLikelihoodText(currentAssessment.adjustedRisk.likelihood);
                 const impactText = getImpactText(currentAssessment.adjustedRisk.impact);
                 const riskLevel = currentAssessment.adjustedRisk.level;
                 const riskColor = getRiskTableColor(currentAssessment.adjustedRisk.score);
 
-                document.getElementById('residualEvaluation').innerHTML = `
+                residualEvaluation.innerHTML = `
                     <div style="background: ${riskColor}; padding: 15px; border-radius: 8px; color: white; font-weight: bold;">
                         ${likelihoodText}<br>x ${impactText}<br>= ${riskLevel}
                     </div>
                 `;
-            } else {
-                document.getElementById('residualEvaluation').innerHTML = `
+            } else if (residualEvaluation) {
+                residualEvaluation.innerHTML = `
                     <div style="background: #95a5a6; padding: 15px; border-radius: 8px; color: white; font-weight: bold;">
                         Not calculated
                     </div>
@@ -946,6 +1075,8 @@
         function updateControlMeasuresDisplay() {
             const selectedCheckboxes = document.querySelectorAll('.control-item input[type="checkbox"]:checked');
             const controlsList = document.getElementById('controlsList');
+            
+            if (!controlsList) return;
             
             if (selectedCheckboxes.length === 0) {
                 controlsList.innerHTML = '<em style="color: #666;">No compensating controls applied yet</em>';
@@ -1021,7 +1152,18 @@
                 level: getRiskLevel(adjustedScore)
             };
 
-            // Update the new risk table
+            // Update after controls in comparison table
+            const afterLikelihood = document.getElementById('afterLikelihood');
+            const afterImpact = document.getElementById('afterImpact');
+            const afterScore = document.getElementById('afterScore');
+            const afterLevel = document.getElementById('afterLevel');
+
+            if (afterLikelihood) afterLikelihood.textContent = adjustedLikelihood;
+            if (afterImpact) afterImpact.textContent = adjustedImpact;
+            if (afterScore) afterScore.textContent = adjustedScore;
+            if (afterLevel) afterLevel.textContent = currentAssessment.adjustedRisk.level;
+
+            // Update the detailed risk table
             updateRiskTable();
 
             // Perform gap analysis
@@ -1032,6 +1174,8 @@
         function performGapAnalysis() {
             const gapAnalysis = document.getElementById('gapAnalysis');
             const gapContent = document.getElementById('gapContent');
+            
+            if (!gapAnalysis || !gapContent) return;
             
             let gaps = [];
 
@@ -1081,6 +1225,8 @@
             const ofiSection = document.getElementById('ofiSection');
             const ofiContent = document.getElementById('ofiContent');
             
+            if (!ofiSection || !ofiContent) return;
+            
             let ofis = [];
 
             // Risk reduction opportunities
@@ -1102,16 +1248,22 @@
             }
 
             // Asset-specific recommendations
-            const confidentiality = parseInt(document.getElementById('confidentiality').value);
-            const integrity = parseInt(document.getElementById('integrity').value);
-            const availability = parseInt(document.getElementById('availability').value);
+            const confidentialityEl = document.getElementById('confidentiality');
+            const integrityEl = document.getElementById('integrity');
+            const availabilityEl = document.getElementById('availability');
 
-            if (confidentiality >= 4 && !currentAssessment.selectedControls.some(c => c.id === 'PR.DS')) {
-                ofis.push('High confidentiality asset should implement enhanced Data Security (PR.DS) controls.');
-            }
+            if (confidentialityEl && integrityEl && availabilityEl) {
+                const confidentiality = parseInt(confidentialityEl.value);
+                const integrity = parseInt(integrityEl.value);
+                const availability = parseInt(availabilityEl.value);
 
-            if (availability >= 4 && !currentAssessment.selectedControls.some(c => c.id === 'RC.RP')) {
-                ofis.push('High availability asset requires robust Recovery Planning (RC.RP) capabilities.');
+                if (confidentiality >= 4 && !currentAssessment.selectedControls.some(c => c.id === 'PR.DS')) {
+                    ofis.push('High confidentiality asset should implement enhanced Data Security (PR.DS) controls.');
+                }
+
+                if (availability >= 4 && !currentAssessment.selectedControls.some(c => c.id === 'RC.RP')) {
+                    ofis.push('High availability asset requires robust Recovery Planning (RC.RP) capabilities.');
+                }
             }
 
             // Control maturity recommendations
@@ -1140,19 +1292,34 @@
                     
                     // Update bow tie visualization with custom data
                     if (customConfig.threats) {
-                        document.getElementById('threatsContent').innerHTML = formatConfigContent(customConfig.threats);
+                        const threatsContent = document.getElementById('threatsContent');
+                        if (threatsContent) {
+                            threatsContent.innerHTML = formatConfigContent(customConfig.threats);
+                        }
                     }
                     if (customConfig.preventativeControls) {
-                        document.getElementById('preventativeContent').innerHTML = formatConfigContent(customConfig.preventativeControls);
+                        const preventativeContent = document.getElementById('preventativeContent');
+                        if (preventativeContent) {
+                            preventativeContent.innerHTML = formatConfigContent(customConfig.preventativeControls);
+                        }
                     }
                     if (customConfig.incidents) {
-                        document.getElementById('incidentContent').innerHTML = formatConfigContent(customConfig.incidents);
+                        const incidentContent = document.getElementById('incidentContent');
+                        if (incidentContent) {
+                            incidentContent.innerHTML = formatConfigContent(customConfig.incidents);
+                        }
                     }
                     if (customConfig.mitigativeControls) {
-                        document.getElementById('mitigativeContent').innerHTML = formatConfigContent(customConfig.mitigativeControls);
+                        const mitigativeContent = document.getElementById('mitigativeContent');
+                        if (mitigativeContent) {
+                            mitigativeContent.innerHTML = formatConfigContent(customConfig.mitigativeControls);
+                        }
                     }
                     if (customConfig.consequences) {
-                        document.getElementById('consequencesContent').innerHTML = formatConfigContent(customConfig.consequences);
+                        const consequencesContent = document.getElementById('consequencesContent');
+                        if (consequencesContent) {
+                            consequencesContent.innerHTML = formatConfigContent(customConfig.consequences);
+                        }
                     }
 
                     // Update controls if provided
@@ -1181,6 +1348,8 @@
             const preventativeGrid = document.getElementById('preventativeControlsGrid');
             const reactiveGrid = document.getElementById('reactiveControlsGrid');
             
+            if (!preventativeGrid || !reactiveGrid) return;
+
             // Clear existing content
             preventativeGrid.innerHTML = '';
             reactiveGrid.innerHTML = '';
@@ -1220,13 +1389,13 @@
             // Collect all assessment data
             const assessmentData = {
                 finding: {
-                    title: document.getElementById('findingTitle').value,
-                    description: document.getElementById('findingDescription').value,
-                    asset: document.getElementById('assetName').value,
+                    title: document.getElementById('findingTitle')?.value || '',
+                    description: document.getElementById('findingDescription')?.value || '',
+                    asset: document.getElementById('assetName')?.value || '',
                     cia: {
-                        confidentiality: document.getElementById('confidentiality').value,
-                        integrity: document.getElementById('integrity').value,
-                        availability: document.getElementById('availability').value
+                        confidentiality: document.getElementById('confidentiality')?.value || '3',
+                        integrity: document.getElementById('integrity')?.value || '3',
+                        availability: document.getElementById('availability')?.value || '3'
                     }
                 },
                 riskAssessment: {
@@ -1237,7 +1406,7 @@
                 analysis: {
                     gaps: currentAssessment.gaps,
                     ofis: currentAssessment.ofis,
-                    notes: document.getElementById('assessmentNotes').value
+                    notes: document.getElementById('assessmentNotes')?.value || ''
                 },
                 metadata: {
                     assessmentDate: new Date().toISOString(),
@@ -1282,25 +1451,28 @@
 
 ## Risk Assessment
 ### Current Risk (Before Controls)
-- **Likelihood:** ${data.riskAssessment.current.likelihood}/5
-- **Impact:** ${data.riskAssessment.current.impact}/5
-- **Risk Score:** ${data.riskAssessment.current.score}
-- **Risk Level:** ${data.riskAssessment.current.level}
+- **Likelihood:** ${data.riskAssessment.current?.likelihood || 'N/A'}/5
+- **Impact:** ${data.riskAssessment.current?.impact || 'N/A'}/5
+- **Risk Score:** ${data.riskAssessment.current?.score || 'N/A'}
+- **Risk Level:** ${data.riskAssessment.current?.level || 'N/A'}
 
 ### Adjusted Risk (After Controls)
-- **Likelihood:** ${data.riskAssessment.adjusted.likelihood}/5
-- **Impact:** ${data.riskAssessment.adjusted.impact}/5
-- **Risk Score:** ${data.riskAssessment.adjusted.score}
-- **Risk Level:** ${data.riskAssessment.adjusted.level}
+- **Likelihood:** ${data.riskAssessment.adjusted?.likelihood || 'N/A'}/5
+- **Impact:** ${data.riskAssessment.adjusted?.impact || 'N/A'}/5
+- **Risk Score:** ${data.riskAssessment.adjusted?.score || 'N/A'}
+- **Risk Level:** ${data.riskAssessment.adjusted?.level || 'N/A'}
 
 ## Applied Compensating Controls
-${data.riskAssessment.selectedControls.map(c => `- **${c.id}:** ${c.name} - ${c.description}`).join('\n')}
+${data.riskAssessment.selectedControls?.length > 0 ? 
+    data.riskAssessment.selectedControls.map(c => `- **${c.id}:** ${c.name} - ${c.description}`).join('\n') :
+    'No controls applied'
+}
 
 ## Gap Analysis
-${data.analysis.gaps.length > 0 ? data.analysis.gaps.map(gap => `- ${gap}`).join('\n') : 'No significant gaps identified.'}
+${data.analysis.gaps?.length > 0 ? data.analysis.gaps.map(gap => `- ${gap}`).join('\n') : 'No significant gaps identified.'}
 
 ## Opportunities for Improvement
-${data.analysis.ofis.length > 0 ? data.analysis.ofis.map(ofi => `- ${ofi}`).join('\n') : 'No specific opportunities identified.'}
+${data.analysis.ofis?.length > 0 ? data.analysis.ofis.map(ofi => `- ${ofi}`).join('\n') : 'No specific opportunities identified.'}
 
 ## Additional Notes
 ${data.analysis.notes || 'No additional notes provided.'}
@@ -1326,21 +1498,21 @@ ${data.analysis.notes || 'No additional notes provided.'}
         function saveSession() {
             const sessionData = {
                 finding: {
-                    title: document.getElementById('findingTitle').value,
-                    description: document.getElementById('findingDescription').value,
-                    asset: document.getElementById('assetName').value,
+                    title: document.getElementById('findingTitle')?.value || '',
+                    description: document.getElementById('findingDescription')?.value || '',
+                    asset: document.getElementById('assetName')?.value || '',
                     cia: {
-                        confidentiality: document.getElementById('confidentiality').value,
-                        integrity: document.getElementById('integrity').value,
-                        availability: document.getElementById('availability').value
+                        confidentiality: document.getElementById('confidentiality')?.value || '3',
+                        integrity: document.getElementById('integrity')?.value || '3',
+                        availability: document.getElementById('availability')?.value || '3'
                     }
                 },
                 risk: {
-                    likelihood: document.getElementById('likelihood').value,
-                    impact: document.getElementById('impact').value
+                    likelihood: document.getElementById('likelihood')?.value || '3',
+                    impact: document.getElementById('impact')?.value || '4'
                 },
                 selectedControls: Array.from(document.querySelectorAll('.control-item input[type="checkbox"]:checked')).map(cb => cb.id),
-                notes: document.getElementById('assessmentNotes').value,
+                notes: document.getElementById('assessmentNotes')?.value || '',
                 timestamp: new Date().toISOString()
             };
 
@@ -1372,21 +1544,34 @@ ${data.analysis.notes || 'No additional notes provided.'}
                     try {
                         const sessionData = JSON.parse(e.target.result);
                         
-                        // Restore form values
-                        document.getElementById('findingTitle').value = sessionData.finding.title || '';
-                        document.getElementById('findingDescription').value = sessionData.finding.description || '';
-                        document.getElementById('assetName').value = sessionData.finding.asset || '';
-                        document.getElementById('confidentiality').value = sessionData.finding.cia.confidentiality || '3';
-                        document.getElementById('integrity').value = sessionData.finding.cia.integrity || '3';
-                        document.getElementById('availability').value = sessionData.finding.cia.availability || '3';
-                        document.getElementById('likelihood').value = sessionData.risk.likelihood || '3';
-                        document.getElementById('impact').value = sessionData.risk.impact || '4';
-                        document.getElementById('assessmentNotes').value = sessionData.notes || '';
+                        // Restore form values safely
+                        const findingTitle = document.getElementById('findingTitle');
+                        const findingDescription = document.getElementById('findingDescription');
+                        const assetName = document.getElementById('assetName');
+                        const confidentiality = document.getElementById('confidentiality');
+                        const integrity = document.getElementById('integrity');
+                        const availability = document.getElementById('availability');
+                        const likelihood = document.getElementById('likelihood');
+                        const impact = document.getElementById('impact');
+                        const assessmentNotes = document.getElementById('assessmentNotes');
+
+                        if (findingTitle) findingTitle.value = sessionData.finding.title || '';
+                        if (findingDescription) findingDescription.value = sessionData.finding.description || '';
+                        if (assetName) assetName.value = sessionData.finding.asset || '';
+                        if (confidentiality) confidentiality.value = sessionData.finding.cia.confidentiality || '3';
+                        if (integrity) integrity.value = sessionData.finding.cia.integrity || '3';
+                        if (availability) availability.value = sessionData.finding.cia.availability || '3';
+                        if (likelihood) likelihood.value = sessionData.risk.likelihood || '3';
+                        if (impact) impact.value = sessionData.risk.impact || '4';
+                        if (assessmentNotes) assessmentNotes.value = sessionData.notes || '';
 
                         // Restore selected controls
                         document.querySelectorAll('.control-item input[type="checkbox"]').forEach(cb => {
                             cb.checked = sessionData.selectedControls.includes(cb.id);
-                            cb.closest('.control-item').classList.toggle('selected', cb.checked);
+                            const controlItem = cb.closest('.control-item');
+                            if (controlItem) {
+                                controlItem.classList.toggle('selected', cb.checked);
+                            }
                         });
 
                         // Recalculate risk
@@ -1403,18 +1588,17 @@ ${data.analysis.notes || 'No additional notes provided.'}
             input.click();
         }
 
-        // Auto-calculate risk when page loads
-        calculateCurrentRisk();
-
         // Bow Tie Model Generation Functions
         function generateBowTieModel() {
             const container = document.getElementById('bowTieModelContainer');
             const legend = document.getElementById('modelLegend');
-            const exportBtns = document.querySelectorAll('#exportPngBtn, #exportSvgBtn');
+            const exportPngBtn = document.getElementById('exportPngBtn');
+            const exportSvgBtn = document.getElementById('exportSvgBtn');
             
-            container.classList.remove('hidden');
-            legend.classList.remove('hidden');
-            exportBtns.forEach(btn => btn.style.display = 'inline-block');
+            if (container) container.classList.remove('hidden');
+            if (legend) legend.classList.remove('hidden');
+            if (exportPngBtn) exportPngBtn.style.display = 'inline-block';
+            if (exportSvgBtn) exportSvgBtn.style.display = 'inline-block';
 
             // Generate the SVG bow tie model
             createInteractiveBowTie();
@@ -1422,6 +1606,8 @@ ${data.analysis.notes || 'No additional notes provided.'}
 
         function createInteractiveBowTie() {
             const svg = document.getElementById('bowTieModel');
+            if (!svg) return;
+
             const isMobile = window.innerWidth <= 768;
             
             if (isMobile) {
@@ -1454,8 +1640,8 @@ ${data.analysis.notes || 'No additional notes provided.'}
             svg.appendChild(defs);
 
             // Get actual user data
-            const findingTitle = document.getElementById('findingTitle').value || 'Security Finding';
-            const assetName = document.getElementById('assetName').value || 'Asset';
+            const findingTitle = document.getElementById('findingTitle')?.value || 'Security Finding';
+            const assetName = document.getElementById('assetName')?.value || 'Asset';
 
             // Central event (red circle) - use actual finding data
             const eventCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -1565,9 +1751,13 @@ ${data.analysis.notes || 'No additional notes provided.'}
         }
 
         function getActualConsequences() {
-            const confidentiality = parseInt(document.getElementById('confidentiality').value);
-            const integrity = parseInt(document.getElementById('integrity').value);
-            const availability = parseInt(document.getElementById('availability').value);
+            const confidentialityEl = document.getElementById('confidentiality');
+            const integrityEl = document.getElementById('integrity');
+            const availabilityEl = document.getElementById('availability');
+
+            const confidentiality = confidentialityEl ? parseInt(confidentialityEl.value) : 3;
+            const integrity = integrityEl ? parseInt(integrityEl.value) : 3;
+            const availability = availabilityEl ? parseInt(availabilityEl.value) : 3;
 
             const consequences = [];
 
@@ -1781,16 +1971,6 @@ ${data.analysis.notes || 'No additional notes provided.'}
             // (This is a simplified version - full implementation would include all elements)
         }
 
-        function addPreventativeControls(svg) {
-            // This function is deprecated - use addActualPreventativeControls instead
-            addActualPreventativeControls(svg);
-        }
-
-        function addReactiveControls(svg) {
-            // This function is deprecated - use addActualReactiveControls instead
-            addActualReactiveControls(svg);
-        }
-
         function createDiamond(svg, cx, cy, width, height, className, text) {
             const diamond = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
             const points = `${cx},${cy-height} ${cx+width},${cy} ${cx},${cy+height} ${cx-width},${cy}`;
@@ -1820,7 +2000,13 @@ ${data.analysis.notes || 'No additional notes provided.'}
             const checkbox = document.getElementById(controlId);
             if (checkbox) {
                 checkbox.checked = !checkbox.checked;
-                checkbox.closest('.control-item').classList.toggle('selected', checkbox.checked);
+                const controlItem = checkbox.closest('.control-item');
+                if (controlItem) {
+                    controlItem.classList.toggle('selected', checkbox.checked);
+                }
+                
+                // Update control measures display
+                updateControlMeasuresDisplay();
                 
                 // Regenerate the bow tie model to reflect changes
                 createInteractiveBowTie();
@@ -1877,6 +2063,11 @@ ${data.analysis.notes || 'No additional notes provided.'}
 
         function exportBowTieModel(format) {
             const svg = document.getElementById('bowTieModel');
+            if (!svg) {
+                alert('❌ Bow tie model not found. Please generate the model first.');
+                return;
+            }
+
             const svgData = new XMLSerializer().serializeToString(svg);
             
             if (format === 'svg') {
@@ -1918,7 +2109,8 @@ ${data.analysis.notes || 'No additional notes provided.'}
 
         // Add resize handler for responsive bow tie
         window.addEventListener('resize', function() {
-            if (!document.getElementById('bowTieModelContainer').classList.contains('hidden')) {
+            const container = document.getElementById('bowTieModelContainer');
+            if (container && !container.classList.contains('hidden')) {
                 createInteractiveBowTie();
             }
         });
