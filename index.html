@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -600,15 +599,22 @@
         }
 
         .risk-arrow {
+            stroke: #2c3e50;
+            stroke-width: 3px;
+            stroke-dasharray: 8, 4;
+            fill: none;
+            marker-end: url(#movement-arrowhead);
+            z-index: 15;
+        }
+
+        .risk-arrow-container {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 20px;
-            color: #2c3e50;
-            font-weight: bold;
-            z-index: 5;
-            text-shadow: 1px 1px 2px white;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
         }
 
         .matrix-legend {
@@ -1296,6 +1302,13 @@
                 el.classList.remove('current-before', 'current-after', 'has-movement');
             });
 
+            // Clear existing SVG arrows
+            const arrowSvg = document.getElementById('risk-movement-svg');
+            if (arrowSvg) {
+                const existingLines = arrowSvg.querySelectorAll('.risk-movement-line');
+                existingLines.forEach(line => line.remove());
+            }
+
             // Add BEFORE position if current risk exists
             if (currentAssessment.currentRisk && currentAssessment.currentRisk.likelihood) {
                 addRiskPosition(
@@ -1352,13 +1365,99 @@
                 beforeCell.classList.add('has-movement');
                 afterCell.classList.add('has-movement');
                 
-                // Add arrow to the "after" cell if different from "before"
-                const arrow = document.createElement('div');
-                arrow.className = 'risk-arrow';
-                arrow.innerHTML = '→';
-                arrow.title = 'Risk moved from BEFORE to AFTER position';
+                // Create SVG container for the arrow
+                const matrixContainer = document.querySelector('.risk-matrix-container');
+                const matrixTable = document.querySelector('.visual-risk-matrix');
                 
-                afterCell.appendChild(arrow);
+                if (matrixContainer && matrixTable) {
+                    // Create SVG overlay for the connecting line
+                    let arrowSvg = document.getElementById('risk-movement-svg');
+                    if (!arrowSvg) {
+                        arrowSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        arrowSvg.id = 'risk-movement-svg';
+                        arrowSvg.style.position = 'absolute';
+                        arrowSvg.style.top = '0';
+                        arrowSvg.style.left = '0';
+                        arrowSvg.style.width = '100%';
+                        arrowSvg.style.height = '100%';
+                        arrowSvg.style.pointerEvents = 'none';
+                        arrowSvg.style.zIndex = '15';
+                        
+                        // Create arrowhead marker for movement
+                        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                        marker.setAttribute('id', 'movement-arrowhead');
+                        marker.setAttribute('markerWidth', '12');
+                        marker.setAttribute('markerHeight', '8');
+                        marker.setAttribute('refX', '11');
+                        marker.setAttribute('refY', '4');
+                        marker.setAttribute('orient', 'auto');
+                        marker.setAttribute('markerUnits', 'strokeWidth');
+                        
+                        const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        arrowPath.setAttribute('d', 'M 0 0 L 12 4 L 0 8 Z');
+                        arrowPath.setAttribute('fill', '#2c3e50');
+                        
+                        marker.appendChild(arrowPath);
+                        defs.appendChild(marker);
+                        arrowSvg.appendChild(defs);
+                        
+                        matrixContainer.style.position = 'relative';
+                        matrixContainer.appendChild(arrowSvg);
+                    } else {
+                        // Clear existing arrows
+                        const existingLines = arrowSvg.querySelectorAll('.risk-movement-line');
+                        existingLines.forEach(line => line.remove());
+                    }
+                    
+                    // Get positions of before and after cells relative to the matrix container
+                    const containerRect = matrixContainer.getBoundingClientRect();
+                    const beforeRect = beforeCell.getBoundingClientRect();
+                    const afterRect = afterCell.getBoundingClientRect();
+                    
+                    // Calculate centers of the cells relative to container
+                    const beforeX = beforeRect.left - containerRect.left + beforeRect.width / 2;
+                    const beforeY = beforeRect.top - containerRect.top + beforeRect.height / 2;
+                    const afterX = afterRect.left - containerRect.left + afterRect.width / 2;
+                    const afterY = afterRect.top - containerRect.top + afterRect.height / 2;
+                    
+                    // Create the connecting line
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', beforeX);
+                    line.setAttribute('y1', beforeY);
+                    line.setAttribute('x2', afterX);
+                    line.setAttribute('y2', afterY);
+                    line.setAttribute('class', 'risk-movement-line');
+                    line.setAttribute('stroke', '#2c3e50');
+                    line.setAttribute('stroke-width', '3');
+                    line.setAttribute('stroke-dasharray', '8,4');
+                    line.setAttribute('marker-end', 'url(#movement-arrowhead)');
+                    line.setAttribute('opacity', '0.8');
+                    
+                    // Add title for tooltip
+                    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    title.textContent = 'Risk moved from BEFORE to AFTER position';
+                    line.appendChild(title);
+                    
+                    arrowSvg.appendChild(line);
+                    
+                    // Add animation to the line
+                    line.style.strokeDasharray = '8,4';
+                    line.style.animation = 'dash-flow 2s linear infinite';
+                    
+                    // Add CSS animation if not already present
+                    if (!document.getElementById('dash-animation-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'dash-animation-style';
+                        style.textContent = `
+                            @keyframes dash-flow {
+                                0% { stroke-dashoffset: 0; }
+                                100% { stroke-dashoffset: -24; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+                }
             }
         }
 
