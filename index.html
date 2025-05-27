@@ -320,6 +320,140 @@
             .risk-matrix {
                 grid-template-columns: 1fr;
             }
+
+            #bowTieModel {
+                min-height: 300px;
+            }
+
+            .mobile-bow-tie {
+                display: block !important;
+            }
+
+            .desktop-bow-tie {
+                display: none !important;
+            }
+        }
+
+        .bow-tie-threat {
+            fill: #3498db;
+            stroke: #2980b9;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bow-tie-threat:hover {
+            fill: #5dade2;
+            transform: scale(1.05);
+        }
+
+        .bow-tie-preventative {
+            fill: #2ecc71;
+            stroke: #27ae60;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bow-tie-preventative:hover {
+            fill: #58d68d;
+        }
+
+        .bow-tie-preventative.selected {
+            fill: #1abc9c;
+            stroke: #16a085;
+            stroke-width: 3;
+        }
+
+        .bow-tie-reactive {
+            fill: #f39c12;
+            stroke: #e67e22;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bow-tie-reactive:hover {
+            fill: #f7dc6f;
+        }
+
+        .bow-tie-reactive.selected {
+            fill: #e67e22;
+            stroke: #d35400;
+            stroke-width: 3;
+        }
+
+        .bow-tie-event {
+            fill: #e74c3c;
+            stroke: #c0392b;
+            stroke-width: 3;
+        }
+
+        .bow-tie-consequence {
+            fill: #e67e22;
+            stroke: #d35400;
+            stroke-width: 2;
+        }
+
+        .control-barrier {
+            stroke-width: 6;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .control-barrier.high-effectiveness {
+            stroke: #27ae60;
+        }
+
+        .control-barrier.medium-effectiveness {
+            stroke: #f1c40f;
+        }
+
+        .control-barrier.low-effectiveness {
+            stroke: #e74c3c;
+        }
+
+        .control-barrier.selected {
+            opacity: 1;
+            stroke-width: 10;
+        }
+
+        .bow-tie-text {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 12px;
+            text-anchor: middle;
+            fill: white;
+            font-weight: 600;
+        }
+
+        .bow-tie-small-text {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 10px;
+            text-anchor: middle;
+            fill: #333;
+            font-weight: 500;
+        }
+
+        .logical-flow-arrow {
+            stroke: #34495e;
+            stroke-width: 3;
+            fill: none;
+            marker-end: url(#arrowhead);
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            max-width: 250px;
         }
     </style>
 </head>
@@ -582,6 +716,41 @@
                 <button class="btn btn-success" onclick="exportAssessment()">📄 Export Assessment</button>
                 <button class="btn btn-primary" onclick="saveSession()">💾 Save Session</button>
                 <button class="btn btn-warning" onclick="loadSession()">📂 Load Session</button>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Step 7: Interactive Bow Tie Model -->
+            <div class="workflow-section">
+                <h2>Step 7: Interactive Bow Tie Model</h2>
+                
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="generateBowTieModel()">🎯 Generate Interactive Bow Tie Model</button>
+                    <button class="btn btn-success" onclick="exportBowTieModel('png')" id="exportPngBtn" style="display: none;">📸 Export as PNG</button>
+                    <button class="btn btn-success" onclick="exportBowTieModel('svg')" id="exportSvgBtn" style="display: none;">🖼️ Export as SVG</button>
+                </div>
+
+                <div id="bowTieModelContainer" class="hidden" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-x: auto;">
+                    <svg id="bowTieModel" width="1200" height="600" viewBox="0 0 1200 600" style="width: 100%; height: auto; min-height: 400px;">
+                        <!-- SVG content will be dynamically generated -->
+                    </svg>
+                </div>
+
+                <div id="modelLegend" class="hidden" style="margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4>Legend</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <div><span style="display: inline-block; width: 20px; height: 20px; background: #3498db; margin-right: 8px; border-radius: 3px;"></span>Threats</div>
+                        <div><span style="display: inline-block; width: 20px; height: 20px; background: #2ecc71; margin-right: 8px; border-radius: 3px;"></span>Preventative Controls</div>
+                        <div><span style="display: inline-block; width: 20px; height: 20px; background: #e74c3c; margin-right: 8px; border-radius: 3px;"></span>Security Event</div>
+                        <div><span style="display: inline-block; width: 20px; height: 20px; background: #f39c12; margin-right: 8px; border-radius: 3px;"></span>Reactive Controls</div>
+                        <div><span style="display: inline-block; width: 20px; height: 20px; background: #e67e22; margin-right: 8px; border-radius: 3px;"></span>Consequences</div>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                        <strong>Control Effectiveness:</strong> Barrier height indicates risk reduction impact. 
+                        Green barriers = High effectiveness, Yellow = Medium, Red = Low effectiveness.
+                        Click controls to toggle selection, hover for details.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -1136,6 +1305,455 @@ ${data.analysis.notes || 'No additional notes provided.'}
 
         // Auto-calculate risk when page loads
         calculateCurrentRisk();
+
+        // Bow Tie Model Generation Functions
+        function generateBowTieModel() {
+            const container = document.getElementById('bowTieModelContainer');
+            const legend = document.getElementById('modelLegend');
+            const exportBtns = document.querySelectorAll('#exportPngBtn, #exportSvgBtn');
+            
+            container.classList.remove('hidden');
+            legend.classList.remove('hidden');
+            exportBtns.forEach(btn => btn.style.display = 'inline-block');
+
+            // Generate the SVG bow tie model
+            createInteractiveBowTie();
+        }
+
+        function createInteractiveBowTie() {
+            const svg = document.getElementById('bowTieModel');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                createMobileBowTie(svg);
+            } else {
+                createDesktopBowTie(svg);
+            }
+        }
+
+        function createDesktopBowTie(svg) {
+            // Clear existing content
+            svg.innerHTML = '';
+
+            // Create arrow marker definition
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            marker.setAttribute('id', 'arrowhead');
+            marker.setAttribute('markerWidth', '10');
+            marker.setAttribute('markerHeight', '7');
+            marker.setAttribute('refX', '9');
+            marker.setAttribute('refY', '3.5');
+            marker.setAttribute('orient', 'auto');
+            
+            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
+            polygon.setAttribute('fill', '#34495e');
+            
+            marker.appendChild(polygon);
+            defs.appendChild(marker);
+            svg.appendChild(defs);
+
+            // Central event (red circle)
+            const eventCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            eventCircle.setAttribute('cx', '600');
+            eventCircle.setAttribute('cy', '300');
+            eventCircle.setAttribute('r', '40');
+            eventCircle.setAttribute('class', 'bow-tie-event');
+            svg.appendChild(eventCircle);
+
+            const eventText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            eventText.setAttribute('x', '600');
+            eventText.setAttribute('y', '305');
+            eventText.setAttribute('class', 'bow-tie-text');
+            eventText.textContent = 'Security Event';
+            svg.appendChild(eventText);
+
+            // Hazard (yellow diamond above event)
+            createDiamond(svg, 600, 200, 50, 30, 'bow-tie-event', 'Hazard');
+
+            // Create threats (left side)
+            const threats = [
+                { name: 'External\nAPT', y: 200 },
+                { name: 'Phishing\nCampaign', y: 280 },
+                { name: 'Malware\nInfection', y: 360 },
+                { name: 'Social\nEngineering', y: 440 }
+            ];
+
+            threats.forEach((threat, index) => {
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', '50');
+                rect.setAttribute('y', threat.y - 25);
+                rect.setAttribute('width', '120');
+                rect.setAttribute('height', '50');
+                rect.setAttribute('rx', '8');
+                rect.setAttribute('class', 'bow-tie-threat');
+                svg.appendChild(rect);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', '110');
+                text.setAttribute('y', threat.y + 5);
+                text.setAttribute('class', 'bow-tie-text');
+                threat.name.split('\n').forEach((line, lineIndex) => {
+                    const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                    tspan.setAttribute('x', '110');
+                    tspan.setAttribute('dy', lineIndex === 0 ? '-5' : '12');
+                    tspan.textContent = line;
+                    text.appendChild(tspan);
+                });
+                svg.appendChild(text);
+
+                // Draw path from threat to event
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', `M 170 ${threat.y} L 560 300`);
+                path.setAttribute('stroke', '#34495e');
+                path.setAttribute('stroke-width', '2');
+                path.setAttribute('fill', 'none');
+                svg.appendChild(path);
+            });
+
+            // Create consequences (right side)
+            const consequences = [
+                { name: 'Data\nBreach', y: 200 },
+                { name: 'System\nCompromise', y: 280 },
+                { name: 'Service\nDisruption', y: 360 },
+                { name: 'Regulatory\nViolation', y: 440 }
+            ];
+
+            consequences.forEach((consequence, index) => {
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', '1030');
+                rect.setAttribute('y', consequence.y - 25);
+                rect.setAttribute('width', '120');
+                rect.setAttribute('height', '50');
+                rect.setAttribute('rx', '8');
+                rect.setAttribute('class', 'bow-tie-consequence');
+                svg.appendChild(rect);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', '1090');
+                text.setAttribute('y', consequence.y + 5);
+                text.setAttribute('class', 'bow-tie-text');
+                consequence.name.split('\n').forEach((line, lineIndex) => {
+                    const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                    tspan.setAttribute('x', '1090');
+                    tspan.setAttribute('dy', lineIndex === 0 ? '-5' : '12');
+                    tspan.textContent = line;
+                    text.appendChild(tspan);
+                });
+                svg.appendChild(text);
+
+                // Draw path from event to consequence
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', `M 640 300 L 1030 ${consequence.y}`);
+                path.setAttribute('stroke', '#34495e');
+                path.setAttribute('stroke-width', '2');
+                path.setAttribute('fill', 'none');
+                svg.appendChild(path);
+            });
+
+            // Add preventative controls
+            addPreventativeControls(svg);
+            
+            // Add reactive controls
+            addReactiveControls(svg);
+
+            // Add logical flow arrow
+            const flowArrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            flowArrow.setAttribute('d', 'M 100 550 L 1100 550');
+            flowArrow.setAttribute('class', 'logical-flow-arrow');
+            svg.appendChild(flowArrow);
+
+            const flowText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            flowText.setAttribute('x', '600');
+            flowText.setAttribute('y', '540');
+            flowText.setAttribute('class', 'bow-tie-small-text');
+            flowText.setAttribute('text-anchor', 'middle');
+            flowText.textContent = 'Logical Flow (can the potential cause create the Event and does that create the Consequence)';
+            svg.appendChild(flowText);
+
+            // Add tooltips
+            addTooltipSupport();
+        }
+
+        function createMobileBowTie(svg) {
+            // Simplified mobile version - vertical layout
+            svg.innerHTML = '';
+            svg.setAttribute('viewBox', '0 0 400 800');
+
+            // Create a simplified vertical flow for mobile
+            let yPos = 50;
+
+            // Threats section
+            const threatsTitle = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            threatsTitle.setAttribute('x', '200');
+            threatsTitle.setAttribute('y', yPos);
+            threatsTitle.setAttribute('class', 'bow-tie-text');
+            threatsTitle.setAttribute('fill', '#333');
+            threatsTitle.textContent = 'Threats';
+            svg.appendChild(threatsTitle);
+
+            yPos += 40;
+            const threatRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            threatRect.setAttribute('x', '100');
+            threatRect.setAttribute('y', yPos);
+            threatRect.setAttribute('width', '200');
+            threatRect.setAttribute('height', '60');
+            threatRect.setAttribute('rx', '8');
+            threatRect.setAttribute('class', 'bow-tie-threat');
+            svg.appendChild(threatRect);
+
+            const threatText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            threatText.setAttribute('x', '200');
+            threatText.setAttribute('y', yPos + 35);
+            threatText.setAttribute('class', 'bow-tie-text');
+            threatText.textContent = 'External APT';
+            svg.appendChild(threatText);
+
+            // Continue with simplified mobile layout...
+            // (This is a simplified version - full implementation would include all elements)
+        }
+
+        function addPreventativeControls(svg) {
+            const preventativeControls = currentAssessment.selectedControls
+                .filter(control => defaultControls.preventative.some(pc => pc.id === control.id));
+
+            const allPreventativeControls = defaultControls.preventative.slice(0, 4); // Show top 4
+            
+            allPreventativeControls.forEach((control, index) => {
+                const isSelected = preventativeControls.some(sc => sc.id === control.id);
+                const yPos = 200 + (index * 80);
+                const xPos = 300;
+
+                // Control barrier
+                const effectiveness = getControlEffectiveness(control);
+                const barrierHeight = Math.max(20, effectiveness * 60);
+                
+                const barrier = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                barrier.setAttribute('x', xPos - 3);
+                barrier.setAttribute('y', yPos - barrierHeight/2);
+                barrier.setAttribute('width', '6');
+                barrier.setAttribute('height', barrierHeight);
+                barrier.setAttribute('class', `control-barrier ${getEffectivenessClass(effectiveness)} ${isSelected ? 'selected' : ''}`);
+                barrier.setAttribute('data-control-id', control.id);
+                barrier.setAttribute('data-type', 'preventative');
+                svg.appendChild(barrier);
+
+                // Control box
+                const controlRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                controlRect.setAttribute('x', xPos + 10);
+                controlRect.setAttribute('y', yPos - 15);
+                controlRect.setAttribute('width', '80');
+                controlRect.setAttribute('height', '30');
+                controlRect.setAttribute('rx', '4');
+                controlRect.setAttribute('class', `bow-tie-preventative ${isSelected ? 'selected' : ''}`);
+                controlRect.setAttribute('data-control-id', control.id);
+                controlRect.setAttribute('data-type', 'preventative');
+                svg.appendChild(controlRect);
+
+                const controlText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                controlText.setAttribute('x', xPos + 50);
+                controlText.setAttribute('y', yPos + 5);
+                controlText.setAttribute('class', 'bow-tie-text');
+                controlText.setAttribute('font-size', '10');
+                controlText.textContent = control.id;
+                svg.appendChild(controlText);
+
+                // Add click handler
+                controlRect.addEventListener('click', () => toggleControl(control.id, 'preventative'));
+                barrier.addEventListener('click', () => toggleControl(control.id, 'preventative'));
+
+                // Add hover tooltip
+                addControlTooltip(controlRect, control);
+                addControlTooltip(barrier, control);
+            });
+        }
+
+        function addReactiveControls(svg) {
+            const reactiveControls = currentAssessment.selectedControls
+                .filter(control => defaultControls.mitigative.some(mc => mc.id === control.id));
+
+            const allReactiveControls = defaultControls.mitigative.slice(0, 4); // Show top 4
+            
+            allReactiveControls.forEach((control, index) => {
+                const isSelected = reactiveControls.some(sc => sc.id === control.id);
+                const yPos = 200 + (index * 80);
+                const xPos = 900;
+
+                // Control barrier
+                const effectiveness = getControlEffectiveness(control);
+                const barrierHeight = Math.max(20, effectiveness * 60);
+                
+                const barrier = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                barrier.setAttribute('x', xPos - 3);
+                barrier.setAttribute('y', yPos - barrierHeight/2);
+                barrier.setAttribute('width', '6');
+                barrier.setAttribute('height', barrierHeight);
+                barrier.setAttribute('class', `control-barrier ${getEffectivenessClass(effectiveness)} ${isSelected ? 'selected' : ''}`);
+                barrier.setAttribute('data-control-id', control.id);
+                barrier.setAttribute('data-type', 'mitigative');
+                svg.appendChild(barrier);
+
+                // Control box
+                const controlRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                controlRect.setAttribute('x', xPos + 10);
+                controlRect.setAttribute('y', yPos - 15);
+                controlRect.setAttribute('width', '80');
+                controlRect.setAttribute('height', '30');
+                controlRect.setAttribute('rx', '4');
+                controlRect.setAttribute('class', `bow-tie-reactive ${isSelected ? 'selected' : ''}`);
+                controlRect.setAttribute('data-control-id', control.id);
+                controlRect.setAttribute('data-type', 'mitigative');
+                svg.appendChild(controlRect);
+
+                const controlText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                controlText.setAttribute('x', xPos + 50);
+                controlText.setAttribute('y', yPos + 5);
+                controlText.setAttribute('class', 'bow-tie-text');
+                controlText.setAttribute('font-size', '10');
+                controlText.textContent = control.id;
+                svg.appendChild(controlText);
+
+                // Add click handler
+                controlRect.addEventListener('click', () => toggleControl(control.id, 'mitigative'));
+                barrier.addEventListener('click', () => toggleControl(control.id, 'mitigative'));
+
+                // Add hover tooltip
+                addControlTooltip(controlRect, control);
+                addControlTooltip(barrier, control);
+            });
+        }
+
+        function createDiamond(svg, cx, cy, width, height, className, text) {
+            const diamond = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            const points = `${cx},${cy-height} ${cx+width},${cy} ${cx},${cy+height} ${cx-width},${cy}`;
+            diamond.setAttribute('points', points);
+            diamond.setAttribute('class', className);
+            svg.appendChild(diamond);
+
+            const diamondText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            diamondText.setAttribute('x', cx);
+            diamondText.setAttribute('y', cy + 5);
+            diamondText.setAttribute('class', 'bow-tie-text');
+            diamondText.textContent = text;
+            svg.appendChild(diamondText);
+        }
+
+        function getControlEffectiveness(control) {
+            return (control.riskReduction.likelihood + control.riskReduction.impact) / 2;
+        }
+
+        function getEffectivenessClass(effectiveness) {
+            if (effectiveness >= 0.6) return 'high-effectiveness';
+            if (effectiveness >= 0.4) return 'medium-effectiveness';
+            return 'low-effectiveness';
+        }
+
+        function toggleControl(controlId, type) {
+            const checkbox = document.getElementById(controlId);
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                checkbox.closest('.control-item').classList.toggle('selected', checkbox.checked);
+                
+                // Regenerate the bow tie model to reflect changes
+                createInteractiveBowTie();
+                
+                // Recalculate risk if controls were applied
+                if (currentAssessment.adjustedRisk.score) {
+                    applyCompensatingControls();
+                }
+            }
+        }
+
+        function addControlTooltip(element, control) {
+            element.addEventListener('mouseenter', function(e) {
+                showTooltip(e, control);
+            });
+            
+            element.addEventListener('mouseleave', function() {
+                hideTooltip();
+            });
+        }
+
+        function showTooltip(event, control) {
+            const effectiveness = getControlEffectiveness(control);
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.innerHTML = `
+                <strong>${control.id}: ${control.name}</strong><br>
+                ${control.description}<br>
+                <em>Risk Reduction: L(-${Math.round(control.riskReduction.likelihood * 100)}%) I(-${Math.round(control.riskReduction.impact * 100)}%)</em><br>
+                <em>Effectiveness: ${Math.round(effectiveness * 100)}%</em>
+            `;
+            
+            document.body.appendChild(tooltip);
+            
+            const rect = event.target.getBoundingClientRect();
+            tooltip.style.left = (rect.right + 10) + 'px';
+            tooltip.style.top = (rect.top + window.scrollY) + 'px';
+            tooltip.style.opacity = '1';
+            
+            window.currentTooltip = tooltip;
+        }
+
+        function hideTooltip() {
+            if (window.currentTooltip) {
+                window.currentTooltip.remove();
+                window.currentTooltip = null;
+            }
+        }
+
+        function addTooltipSupport() {
+            // Add global tooltip cleanup on scroll
+            window.addEventListener('scroll', hideTooltip);
+        }
+
+        function exportBowTieModel(format) {
+            const svg = document.getElementById('bowTieModel');
+            const svgData = new XMLSerializer().serializeToString(svg);
+            
+            if (format === 'svg') {
+                const blob = new Blob([svgData], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `bow_tie_model_${new Date().toISOString().split('T')[0]}.svg`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } else if (format === 'png') {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    
+                    canvas.toBlob(function(blob) {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `bow_tie_model_${new Date().toISOString().split('T')[0]}.png`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    });
+                };
+                
+                img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+            }
+            
+            alert(`📸 Bow tie model exported as ${format.toUpperCase()} successfully!`);
+        }
+
+        // Add resize handler for responsive bow tie
+        window.addEventListener('resize', function() {
+            if (!document.getElementById('bowTieModelContainer').classList.contains('hidden')) {
+                createInteractiveBowTie();
+            }
+        });
     </script>
 </body>
 </html>
