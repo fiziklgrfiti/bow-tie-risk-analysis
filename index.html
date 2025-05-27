@@ -1021,11 +1021,8 @@
                 level: getRiskLevel(adjustedScore)
             };
 
-            // Update comparison table
-            document.getElementById('afterLikelihood').textContent = adjustedLikelihood;
-            document.getElementById('afterImpact').textContent = adjustedImpact;
-            document.getElementById('afterScore').textContent = adjustedScore;
-            document.getElementById('afterLevel').textContent = currentAssessment.adjustedRisk.level;
+            // Update the new risk table
+            updateRiskTable();
 
             // Perform gap analysis
             performGapAnalysis();
